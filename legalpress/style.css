@@ -4,7 +4,7 @@ Theme URI: https://lawandbeyond.in/legalpress
 Author: Law & Beyond
 Author URI: https://lawandbeyond.in
 Description: A modern, professional WordPress theme for legal news, judgments, and editorial content.
-Version: 2.0.8
+Version: 2.2.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 7.4
@@ -923,7 +923,11 @@ mark {
 	color: white;
 }
 
-.tag {
+/* Tag badges - use more specific selector to avoid conflicts with body.tag */
+a.tag,
+span.tag,
+.post-tags .tag,
+.single-footer .tag {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-1);
@@ -936,7 +940,10 @@ mark {
 	transition: all var(--duration-fast) var(--ease-out);
 }
 
-.tag:hover {
+a.tag:hover,
+span.tag:hover,
+.post-tags .tag:hover,
+.single-footer .tag:hover {
 	background-color: var(--color-accent);
 	color: var(--color-primary-dark);
 	border-color: var(--color-accent);
@@ -1071,6 +1078,60 @@ mark {
 		orphans: 3;
 		widows: 3;
 	}
+}
+
+/* ==========================================================================
+   ARCHIVE PAGE STYLES
+   ========================================================================== */
+
+/* Reset for archive pages - prevent tag class conflicts */
+.archive,
+.tag,
+.category,
+.author,
+.date {
+	background-color: var(--color-bg-primary) !important;
+}
+
+.archive-header {
+	width: 100%;
+	padding: var(--space-12) 0;
+	background-color: var(--color-primary-dark);
+	color: white;
+	margin-bottom: var(--space-10);
+}
+
+.archive-header .container {
+	width: 100%;
+}
+
+.archive-header__title {
+	margin: 0 0 var(--space-4);
+	font-family: var(--font-heading);
+	font-size: var(--text-3xl);
+	font-weight: var(--font-extrabold);
+	color: white;
+	line-height: var(--leading-tight);
+}
+
+@media (min-width: 768px) {
+	.archive-header__title {
+		font-size: var(--text-4xl);
+	}
+}
+
+.archive-header__description {
+	margin: 0;
+	font-size: var(--text-lg);
+	color: rgba(255, 255, 255, 0.8);
+	line-height: var(--leading-relaxed);
+	max-width: 700px;
+}
+
+.archive-header__count {
+	margin-top: var(--space-4);
+	font-size: var(--text-sm);
+	color: rgba(255, 255, 255, 0.7);
 }
 
 /* ==========================================================================

@@ -260,29 +260,11 @@ $displayed_posts = array();
 
 <!-- Category Sections -->
 <?php
-$category_sections = array(
-    array(
-        'slug' => 'law',
-        'title' => 'Law & Legislation',
-        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
-        'color' => '#4f46e5'
-    ),
-    array(
-        'slug' => 'judgments',
-        'title' => 'Court Judgments',
-        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-        'color' => '#059669'
-    ),
-    array(
-        'slug' => 'editorial',
-        'title' => 'Editorial & Opinion',
-        'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
-        'color' => '#dc2626'
-    )
-);
+// Get dynamic category sections from Customizer (or auto-select top categories)
+$category_sections = legalpress_get_homepage_categories();
 
 foreach ($category_sections as $index => $cat_section):
-    $category = get_category_by_slug($cat_section['slug']);
+    $category = $cat_section['category'];
     if (!$category)
         continue;
 
@@ -385,46 +367,53 @@ endforeach;
 ?>
 
 <!-- Newsletter Section -->
-<section class="section section--newsletter reveal" data-animate="fade-in-up">
-    <div class="container">
-        <div class="newsletter-box glass-card">
-            <div class="newsletter-box__content">
-                <h2 class="newsletter-box__title gradient-text">Stay Updated</h2>
-                <p class="newsletter-box__text">Get the latest legal news and analysis delivered to your inbox weekly.
-                    Join thousands of legal professionals who trust LegalPress.</p>
+<?php if (get_theme_mod('legalpress_show_newsletter', true)):
+    $newsletter_title = get_theme_mod('legalpress_newsletter_title', 'Stay Updated');
+    $newsletter_text = get_theme_mod('legalpress_newsletter_text', 'Get the latest legal news and analysis delivered to your inbox weekly. Join thousands of legal professionals who trust LegalPress.');
+    $newsletter_action = get_theme_mod('legalpress_newsletter_action', '');
+    ?>
+    <section class="section section--newsletter reveal" data-animate="fade-in-up">
+        <div class="container">
+            <div class="newsletter-box glass-card">
+                <div class="newsletter-box__content">
+                    <h2 class="newsletter-box__title gradient-text"><?php echo esc_html($newsletter_title); ?></h2>
+                    <p class="newsletter-box__text"><?php echo esc_html($newsletter_text); ?></p>
 
-                <form class="newsletter-form" action="#" method="post">
-                    <div class="newsletter-form__group">
-                        <input type="email" name="email" placeholder="Enter your email address"
-                            class="newsletter-form__input" required>
-                        <button type="submit" class="newsletter-form__btn btn btn-primary">
-                            Subscribe
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    <form class="newsletter-form"
+                        action="<?php echo esc_url($newsletter_action ? $newsletter_action : '#'); ?>" method="post">
+                        <div class="newsletter-form__group">
+                            <input type="email" name="email"
+                                placeholder="<?php esc_attr_e('Enter your email address', 'legalpress'); ?>"
+                                class="newsletter-form__input" required>
+                            <button type="submit" class="newsletter-form__btn btn btn-primary">
+                                <?php esc_html_e('Subscribe', 'legalpress'); ?>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="newsletter-form__note">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
-                                <line x1="22" y1="2" x2="11" y2="13" />
-                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             </svg>
-                        </button>
-                    </div>
-                    <p class="newsletter-form__note">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                        We respect your privacy. Unsubscribe at any time.
-                    </p>
-                </form>
-            </div>
+                            <?php esc_html_e('We respect your privacy. Unsubscribe at any time.', 'legalpress'); ?>
+                        </p>
+                    </form>
+                </div>
 
-            <div class="newsletter-box__decoration">
-                <svg viewBox="0 0 200 200" fill="none">
-                    <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="0.5" opacity="0.1" />
-                    <circle cx="100" cy="100" r="60" stroke="currentColor" stroke-width="0.5" opacity="0.15" />
-                    <circle cx="100" cy="100" r="40" stroke="currentColor" stroke-width="0.5" opacity="0.2" />
-                </svg>
+                <div class="newsletter-box__decoration">
+                    <svg viewBox="0 0 200 200" fill="none">
+                        <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="0.5" opacity="0.1" />
+                        <circle cx="100" cy="100" r="60" stroke="currentColor" stroke-width="0.5" opacity="0.15" />
+                        <circle cx="100" cy="100" r="40" stroke="currentColor" stroke-width="0.5" opacity="0.2" />
+                    </svg>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+<?php endif; ?>
 
 <?php get_footer(); ?>

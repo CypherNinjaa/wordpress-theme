@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
  * Define theme constants with existence check - SECURITY
  */
 if (!defined('LEGALPRESS_VERSION')) {
-    define('LEGALPRESS_VERSION', '2.0.8');
+    define('LEGALPRESS_VERSION', '2.2.0');
 }
 if (!defined('LEGALPRESS_DIR')) {
     define('LEGALPRESS_DIR', get_template_directory());
@@ -632,6 +632,171 @@ function legalpress_comment_callback($comment, $args, $depth)
  */
 function legalpress_customize_register($wp_customize)
 {
+    // ========================================
+    // SOCIAL LINKS SECTION
+    // ========================================
+    $wp_customize->add_section('legalpress_social', array(
+        'title' => esc_html__('Social Links', 'legalpress'),
+        'priority' => 110,
+    ));
+
+    // Twitter/X URL
+    $wp_customize->add_setting('legalpress_twitter_url', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_twitter_url', array(
+        'label' => esc_html__('Twitter/X URL', 'legalpress'),
+        'section' => 'legalpress_social',
+        'type' => 'url',
+    ));
+
+    // Facebook URL
+    $wp_customize->add_setting('legalpress_facebook_url', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_facebook_url', array(
+        'label' => esc_html__('Facebook URL', 'legalpress'),
+        'section' => 'legalpress_social',
+        'type' => 'url',
+    ));
+
+    // LinkedIn URL
+    $wp_customize->add_setting('legalpress_linkedin_url', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_linkedin_url', array(
+        'label' => esc_html__('LinkedIn URL', 'legalpress'),
+        'section' => 'legalpress_social',
+        'type' => 'url',
+    ));
+
+    // Instagram URL
+    $wp_customize->add_setting('legalpress_instagram_url', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_instagram_url', array(
+        'label' => esc_html__('Instagram URL', 'legalpress'),
+        'section' => 'legalpress_social',
+        'type' => 'url',
+    ));
+
+    // YouTube URL
+    $wp_customize->add_setting('legalpress_youtube_url', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_youtube_url', array(
+        'label' => esc_html__('YouTube URL', 'legalpress'),
+        'section' => 'legalpress_social',
+        'type' => 'url',
+    ));
+
+    // ========================================
+    // HOMEPAGE SETTINGS SECTION
+    // ========================================
+    $wp_customize->add_section('legalpress_homepage', array(
+        'title' => esc_html__('Homepage Settings', 'legalpress'),
+        'priority' => 115,
+    ));
+
+    // Get all categories for dropdown
+    $categories = get_categories(array('hide_empty' => false));
+    $cat_choices = array('' => esc_html__('-- Select Category --', 'legalpress'));
+    foreach ($categories as $cat) {
+        $cat_choices[$cat->slug] = $cat->name;
+    }
+
+    // Category Section 1
+    $wp_customize->add_setting('legalpress_cat_section_1', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('legalpress_cat_section_1', array(
+        'label' => esc_html__('Category Section 1', 'legalpress'),
+        'description' => esc_html__('Select first featured category for homepage', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'select',
+        'choices' => $cat_choices,
+    ));
+
+    // Category Section 2
+    $wp_customize->add_setting('legalpress_cat_section_2', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('legalpress_cat_section_2', array(
+        'label' => esc_html__('Category Section 2', 'legalpress'),
+        'description' => esc_html__('Select second featured category for homepage', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'select',
+        'choices' => $cat_choices,
+    ));
+
+    // Category Section 3
+    $wp_customize->add_setting('legalpress_cat_section_3', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('legalpress_cat_section_3', array(
+        'label' => esc_html__('Category Section 3', 'legalpress'),
+        'description' => esc_html__('Select third featured category for homepage', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'select',
+        'choices' => $cat_choices,
+    ));
+
+    // Newsletter Section Title
+    $wp_customize->add_setting('legalpress_newsletter_title', array(
+        'default' => 'Stay Updated',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_control('legalpress_newsletter_title', array(
+        'label' => esc_html__('Newsletter Title', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'text',
+    ));
+
+    // Newsletter Section Text
+    $wp_customize->add_setting('legalpress_newsletter_text', array(
+        'default' => 'Get the latest legal news and analysis delivered to your inbox weekly. Join thousands of legal professionals who trust LegalPress.',
+        'sanitize_callback' => 'wp_kses_post',
+    ));
+    $wp_customize->add_control('legalpress_newsletter_text', array(
+        'label' => esc_html__('Newsletter Description', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'textarea',
+    ));
+
+    // Newsletter Form Action URL (for MailChimp, etc.)
+    $wp_customize->add_setting('legalpress_newsletter_action', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('legalpress_newsletter_action', array(
+        'label' => esc_html__('Newsletter Form URL', 'legalpress'),
+        'description' => esc_html__('Enter your email service form action URL (MailChimp, ConvertKit, etc.)', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'url',
+    ));
+
+    // Show/Hide Newsletter Section
+    $wp_customize->add_setting('legalpress_show_newsletter', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean',
+    ));
+    $wp_customize->add_control('legalpress_show_newsletter', array(
+        'label' => esc_html__('Show Newsletter Section', 'legalpress'),
+        'section' => 'legalpress_homepage',
+        'type' => 'checkbox',
+    ));
+
+    // ========================================
+    // FOOTER SETTINGS SECTION
+    // ========================================
     $wp_customize->add_section('legalpress_footer', array(
         'title' => esc_html__('Footer Settings', 'legalpress'),
         'priority' => 120,
@@ -658,6 +823,113 @@ function legalpress_customize_register($wp_customize)
     ));
 }
 add_action('customize_register', 'legalpress_customize_register');
+
+/**
+ * Get Social Links for Footer
+ *
+ * @return array Array of social links
+ */
+function legalpress_get_social_links()
+{
+    $social_links = array();
+
+    $platforms = array(
+        'twitter' => array(
+            'url' => get_theme_mod('legalpress_twitter_url'),
+            'label' => 'Twitter',
+            'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>',
+        ),
+        'facebook' => array(
+            'url' => get_theme_mod('legalpress_facebook_url'),
+            'label' => 'Facebook',
+            'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
+        ),
+        'linkedin' => array(
+            'url' => get_theme_mod('legalpress_linkedin_url'),
+            'label' => 'LinkedIn',
+            'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
+        ),
+        'instagram' => array(
+            'url' => get_theme_mod('legalpress_instagram_url'),
+            'label' => 'Instagram',
+            'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+        ),
+        'youtube' => array(
+            'url' => get_theme_mod('legalpress_youtube_url'),
+            'label' => 'YouTube',
+            'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>',
+        ),
+    );
+
+    foreach ($platforms as $key => $platform) {
+        if (!empty($platform['url'])) {
+            $social_links[$key] = $platform;
+        }
+    }
+
+    // Always show RSS feed
+    $social_links['rss'] = array(
+        'url' => get_bloginfo('rss2_url'),
+        'label' => 'RSS Feed',
+        'icon' => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>',
+    );
+
+    return $social_links;
+}
+
+/**
+ * Get Homepage Category Sections
+ *
+ * @return array Array of category sections
+ */
+function legalpress_get_homepage_categories()
+{
+    $sections = array();
+    $colors = array('#4f46e5', '#059669', '#dc2626'); // Default colors
+    $icons = array(
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
+    );
+
+    for ($i = 1; $i <= 3; $i++) {
+        $cat_slug = get_theme_mod('legalpress_cat_section_' . $i);
+        if (!empty($cat_slug)) {
+            $category = get_category_by_slug($cat_slug);
+            if ($category) {
+                $sections[] = array(
+                    'slug' => $cat_slug,
+                    'title' => $category->name,
+                    'icon' => $icons[$i - 1],
+                    'color' => $colors[$i - 1],
+                    'category' => $category,
+                );
+            }
+        }
+    }
+
+    // Fallback to auto-select top categories if none selected
+    if (empty($sections)) {
+        $top_cats = get_categories(array(
+            'orderby' => 'count',
+            'order' => 'DESC',
+            'number' => 3,
+            'hide_empty' => true,
+        ));
+
+        foreach ($top_cats as $index => $cat) {
+            $sections[] = array(
+                'slug' => $cat->slug,
+                'title' => $cat->name,
+                'icon' => $icons[$index] ?? $icons[0],
+                'color' => $colors[$index] ?? $colors[0],
+                'category' => $cat,
+            );
+        }
+    }
+
+    return $sections;
+}
 
 /**
  * Get Copyright Text
