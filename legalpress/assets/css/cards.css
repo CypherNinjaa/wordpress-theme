@@ -104,7 +104,8 @@
 	display: block;
 }
 
-.post-card-image a {
+/* Only apply to direct link child, not category badge links */
+.post-card-image > a:not(.post-card-category):not(.post-card-read-time) {
 	display: block;
 	width: 100%;
 	height: 100%;
