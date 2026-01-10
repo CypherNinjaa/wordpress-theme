@@ -100,7 +100,7 @@
 	position: relative;
 	overflow: hidden;
 	aspect-ratio: 16 / 10;
-	background-color: var(--color-bg-tertiary);
+	background-color: var(--color-bg-tertiary) !important;
 	display: block;
 }
 
