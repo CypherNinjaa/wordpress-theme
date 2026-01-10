@@ -394,20 +394,21 @@
 	--btn-bg: #10b981;
 }
 
-/* Hide text on small screens */
-@media (max-width: 640px) {
-	.share-btn span {
-		display: none;
-	}
-	
-	.share-btn {
-		padding: var(--space-2);
-	}
-	
-	.share-buttons__label span {
-		display: none;
-	}
+/* Icon-only buttons */
+.share-btn span {
+	display: none;
 }
+
+.share-btn {
+	padding: var(--space-3);
+	border-radius: var(--radius-full);
+}
+
+.share-buttons__label span {
+	display: inline;
+}
+
+@media (max-width: 640px) {
 
 /* ==========================================================================
    RELATED POSTS (New Template Classes)

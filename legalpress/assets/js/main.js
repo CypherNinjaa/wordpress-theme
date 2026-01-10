@@ -517,15 +517,15 @@
 			const copyFn = () => {
 				// Show feedback
 				btn.classList.add("copied");
-				
+
 				const iconCopy = btn.querySelector(".icon-copy");
 				const iconCheck = btn.querySelector(".icon-check");
 				const copyText = btn.querySelector(".copy-text");
-				
+
 				if (iconCopy) iconCopy.style.display = "none";
 				if (iconCheck) iconCheck.style.display = "block";
 				if (copyText) copyText.textContent = "Copied!";
-				
+
 				setTimeout(() => {
 					btn.classList.remove("copied");
 					if (iconCopy) iconCopy.style.display = "block";
