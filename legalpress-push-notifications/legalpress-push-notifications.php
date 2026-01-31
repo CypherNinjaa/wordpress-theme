@@ -171,47 +171,40 @@ function legalpress_push_enqueue_scripts()
         'vapidPublicKey' => $vapid_public,
         'serviceWorkerUrl' => home_url('/legalpress-sw.js'),
         'siteName' => get_bloginfo('name'),
-        'siteIcon' => get_site_icon_url(192, LEGALPRESS_PUSH_URL . 'assets/images/icon-192.png'),
+        'siteIcon' => legalpress_push_get_icon(192),
     ));
 }
 add_action('wp_enqueue_scripts', 'legalpress_push_enqueue_scripts');
 
 /**
- * Serve Service Worker with correct headers
+ * Serve Service Worker - hook EARLY to prevent any redirects
+ * This must run before WordPress processes any redirects
  */
 function legalpress_push_serve_sw()
 {
-    if (isset($_GET['legalpress-sw']) || 
-        (isset($GLOBALS['wp']->query_vars['legalpress-sw']) && $GLOBALS['wp']->query_vars['legalpress-sw'])) {
-        
-        header('Content-Type: application/javascript');
+    // Check the raw request URI directly - before WordPress processes it
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $path = parse_url($request_uri, PHP_URL_PATH);
+    
+    // Match /legalpress-sw.js exactly
+    if ($path === '/legalpress-sw.js' || basename($path) === 'legalpress-sw.js') {
+        // Send headers immediately - no redirects allowed
+        header('Content-Type: application/javascript; charset=utf-8');
         header('Service-Worker-Allowed: /');
         header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
         
-        readfile(LEGALPRESS_PUSH_DIR . 'assets/js/sw.js');
+        $sw_file = LEGALPRESS_PUSH_DIR . 'assets/js/sw.js';
+        if (file_exists($sw_file)) {
+            readfile($sw_file);
+        } else {
+            echo '// Service worker file not found';
+        }
         exit;
     }
 }
-add_action('template_redirect', 'legalpress_push_serve_sw');
-
-/**
- * Add rewrite rule for service worker
- */
-function legalpress_push_rewrite_rules()
-{
-    add_rewrite_rule('^legalpress-sw\.js$', 'index.php?legalpress-sw=1', 'top');
-}
-add_action('init', 'legalpress_push_rewrite_rules');
-
-/**
- * Register query var for service worker
- */
-function legalpress_push_query_vars($vars)
-{
-    $vars[] = 'legalpress-sw';
-    return $vars;
-}
-add_filter('query_vars', 'legalpress_push_query_vars');
+// Hook at 'init' with priority 1 - runs BEFORE permalink redirects
+add_action('init', 'legalpress_push_serve_sw', 1);
 
 /**
  * AJAX handler: Save push subscription
@@ -290,9 +283,10 @@ function legalpress_push_remove_subscription()
 {
     check_ajax_referer('legalpress_push_nonce', 'nonce');
 
+    // Use esc_url_raw to match how the endpoint was stored during save
     $endpoint = isset($_POST['endpoint']) ? esc_url_raw($_POST['endpoint']) : '';
     
-    if (!$endpoint) {
+    if (!$endpoint || strpos($endpoint, 'https://') !== 0) {
         wp_send_json_error('Invalid endpoint');
         return;
     }
@@ -300,15 +294,18 @@ function legalpress_push_remove_subscription()
     global $wpdb;
     $table_name = $wpdb->prefix . 'push_subscriptions';
 
-    $wpdb->update(
+    // Delete the subscription entirely (not just deactivate)
+    $deleted = $wpdb->delete(
         $table_name,
-        array('is_active' => 0),
         array('endpoint' => $endpoint),
-        array('%d'),
         array('%s')
     );
 
-    wp_send_json_success('Subscription removed');
+    if ($deleted !== false) {
+        wp_send_json_success(array('message' => 'Subscription removed', 'deleted' => $deleted));
+    } else {
+        wp_send_json_error('Failed to remove subscription');
+    }
 }
 add_action('wp_ajax_legalpress_remove_subscription', 'legalpress_push_remove_subscription');
 add_action('wp_ajax_nopriv_legalpress_remove_subscription', 'legalpress_push_remove_subscription');
@@ -325,6 +322,40 @@ function legalpress_push_get_subscriptions()
         "SELECT * FROM $table_name WHERE is_active = 1",
         ARRAY_A
     );
+}
+
+/**
+ * Get the best available icon for push notifications
+ * Priority: Site Icon > Custom Logo > Default fallback
+ * 
+ * @param int $size Preferred icon size
+ * @return string Icon URL
+ */
+function legalpress_push_get_icon($size = 192)
+{
+    // 1. Try Site Icon (best for notifications - square format)
+    $site_icon = get_site_icon_url($size);
+    if ($site_icon) {
+        return $site_icon;
+    }
+    
+    // 2. Try Custom Logo
+    $custom_logo_id = get_theme_mod('custom_logo');
+    if ($custom_logo_id) {
+        $logo_url = wp_get_attachment_image_url($custom_logo_id, 'medium');
+        if ($logo_url) {
+            return $logo_url;
+        }
+    }
+    
+    // 3. Fallback to default icon in plugin (if exists)
+    $default_icon = LEGALPRESS_PUSH_DIR . 'assets/images/icon-192.png';
+    if (file_exists($default_icon)) {
+        return LEGALPRESS_PUSH_URL . 'assets/images/icon-192.png';
+    }
+    
+    // 4. Last resort - favicon
+    return home_url('/favicon.ico');
 }
 
 /**
@@ -371,8 +402,8 @@ function legalpress_push_send_notification($title, $body, $url = '', $icon = '')
         'title' => $title,
         'body' => $body,
         'url' => $url ?: home_url('/'),
-        'icon' => $icon ?: get_site_icon_url(192),
-        'badge' => get_site_icon_url(72),
+        'icon' => $icon ?: legalpress_push_get_icon(192),
+        'badge' => legalpress_push_get_icon(72),
         'timestamp' => time() * 1000,
     ));
 

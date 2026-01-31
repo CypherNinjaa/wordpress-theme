@@ -72,7 +72,7 @@
 		setInitialTheme() {
 			const savedTheme = localStorage.getItem("legalpress-theme");
 			const prefersDark = window.matchMedia(
-				"(prefers-color-scheme: dark)"
+				"(prefers-color-scheme: dark)",
 			).matches;
 
 			if (savedTheme) {
@@ -150,7 +150,7 @@
 
 			// Submenu toggles
 			const submenuToggles = this.menu.querySelectorAll(
-				".mobile-submenu-toggle"
+				".mobile-submenu-toggle",
 			);
 			submenuToggles.forEach((toggle) => {
 				toggle.addEventListener("click", (e) => {
@@ -217,7 +217,7 @@
 			this.toggle = document.querySelector(".search-toggle");
 			this.closeBtn = document.querySelector(".search-overlay-close");
 			this.searchInput = document.querySelector(
-				".search-overlay .search-field"
+				".search-overlay .search-field",
 			);
 
 			if (!this.overlay) return;
@@ -284,7 +284,7 @@
 				{
 					threshold: 0.1,
 					rootMargin: "0px 0px -50px 0px",
-				}
+				},
 			);
 
 			// Observe elements
@@ -312,7 +312,7 @@
 					} else {
 						this.button.classList.remove("is-visible");
 					}
-				}, 100)
+				}, 100),
 			);
 
 			// Scroll to top on click
@@ -395,7 +395,7 @@
 					},
 					{
 						rootMargin: "50px 0px",
-					}
+					},
 				);
 
 				images.forEach((img) => this.observer.observe(img));
@@ -572,13 +572,52 @@
 						0,
 						Math.min(
 							100,
-							((scrollY - articleTop + windowHeight) / articleHeight) * 100
-						)
+							((scrollY - articleTop + windowHeight) / articleHeight) * 100,
+						),
 					);
 
 					progressBar.style.width = `${progress}%`;
-				}, 16)
+				}, 16),
 			);
+		},
+	};
+
+	// ==========================================================================
+	// POST CARD CLICK (Mobile Support)
+	// ==========================================================================
+
+	const postCardClick = {
+		init() {
+			// Handle post card clicks for mobile
+			document.querySelectorAll(".post-card").forEach((card) => {
+				const href = card.getAttribute("data-href");
+				if (!href) return;
+
+				// Add click handler to the entire card for mobile
+				card.addEventListener("click", (e) => {
+					// Don't navigate if clicking on a link, category badge, or other interactive element
+					if (e.target.closest("a:not(.post-card-link-overlay)")) {
+						return;
+					}
+
+					// Navigate to the post
+					window.location.href = href;
+				});
+
+				// Also handle touch events explicitly for iOS
+				card.addEventListener("touchend", (e) => {
+					// Only if not scrolling and not tapping a link
+					if (e.target.closest("a:not(.post-card-link-overlay)")) {
+						return;
+					}
+
+					// Small delay to distinguish from scroll
+					const touch = e.changedTouches[0];
+					if (touch) {
+						// Don't preventDefault here to allow normal link behavior
+					}
+				});
+			});
 		},
 	};
 
@@ -599,6 +638,7 @@
 		newsletterForm.init();
 		copyLink.init();
 		readingProgress.init();
+		postCardClick.init();
 	});
 
 	// Expose utilities for external use

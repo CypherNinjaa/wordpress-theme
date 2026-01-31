@@ -1395,3 +1395,140 @@
 .comment-form .submit:active {
 	transform: translateY(0);
 }
+
+/* ==========================================================================
+   DARK MODE OVERRIDES FOR SINGLE POST
+   ========================================================================== */
+
+[data-theme="dark"] .single-header {
+	background: none !important;
+}
+
+[data-theme="dark"] .single-title {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .entry-content {
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .entry-content h2,
+[data-theme="dark"] .entry-content h3,
+[data-theme="dark"] .entry-content h4,
+[data-theme="dark"] .entry-content h5,
+[data-theme="dark"] .entry-content h6 {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .entry-content p,
+[data-theme="dark"] .entry-content li {
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .entry-content a {
+	color: var(--color-accent);
+}
+
+[data-theme="dark"] .entry-content a:hover {
+	color: var(--color-accent-dark);
+}
+
+[data-theme="dark"] .entry-content blockquote {
+	background-color: var(--color-bg-secondary);
+	color: var(--color-text-secondary);
+	border-left-color: var(--color-accent);
+}
+
+[data-theme="dark"] .entry-content blockquote cite {
+	color: var(--color-text-tertiary);
+}
+
+[data-theme="dark"] .entry-content code {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-accent);
+}
+
+[data-theme="dark"] .entry-content pre {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .entry-content table th {
+	background-color: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .entry-content table td {
+	background-color: var(--color-bg-secondary);
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .entry-content table tr:nth-child(even) td {
+	background-color: var(--color-bg-tertiary);
+}
+
+[data-theme="dark"] .entry-content hr {
+	border-color: var(--color-border-primary);
+}
+
+/* TOC Dark Mode */
+[data-theme="dark"] .toc-container {
+	background-color: var(--color-bg-secondary);
+	border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .toc-toggle {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .toc-list a {
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .toc-list a:hover,
+[data-theme="dark"] .toc-list a.active {
+	color: var(--color-accent);
+}
+
+/* Related Posts Dark Mode */
+[data-theme="dark"] .related-posts {
+	background-color: var(--color-bg-secondary);
+}
+
+[data-theme="dark"] .related-posts-title {
+	color: var(--color-text-primary);
+}
+
+/* Comments Dark Mode */
+[data-theme="dark"] .comments-section {
+	background-color: transparent;
+}
+
+[data-theme="dark"] .comments-title {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .comment-body {
+	background-color: var(--color-bg-secondary);
+	border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .comment-author-name {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .comment-content p {
+	color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .comment-form input,
+[data-theme="dark"] .comment-form textarea {
+	background-color: var(--color-bg-tertiary);
+	border-color: var(--color-border-primary);
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .comment-form input::placeholder,
+[data-theme="dark"] .comment-form textarea::placeholder {
+	color: var(--color-text-muted);
+}

@@ -100,20 +100,30 @@
 	// Unsubscribe from push notifications
 	const unsubscribeFromPush = async (subscription) => {
 		try {
-			await subscription.unsubscribe();
+			// First unsubscribe from browser
+			const unsubscribed = await subscription.unsubscribe();
+			console.log("[Push] Browser unsubscribe result:", unsubscribed);
 
-			// Notify server
+			// Then notify server to remove from database
 			const formData = new FormData();
 			formData.append("action", "legalpress_remove_subscription");
 			formData.append("nonce", legalpressPush.nonce);
 			formData.append("endpoint", subscription.endpoint);
 
-			await fetch(legalpressPush.ajaxUrl, {
+			const response = await fetch(legalpressPush.ajaxUrl, {
 				method: "POST",
 				body: formData,
 			});
 
-			console.log("[Push] Unsubscribed");
+			const result = await response.json();
+			console.log("[Push] Server unsubscribe result:", result);
+
+			if (!result.success) {
+				console.warn("[Push] Server removal warning:", result.data);
+				// Don't throw - browser already unsubscribed
+			}
+
+			console.log("[Push] Unsubscribed successfully");
 			return true;
 		} catch (error) {
 			console.error("[Push] Unsubscribe failed:", error);
@@ -240,7 +250,10 @@
 	// Initialize push button after DOM modification
 	const initPushButton = async () => {
 		const pushButton = document.querySelector(".push-subscribe-btn");
-		if (!pushButton) return;
+		if (!pushButton || pushButton.dataset.initialized) return;
+
+		// Mark as initialized to prevent double event binding
+		pushButton.dataset.initialized = "true";
 
 		try {
 			const registration = await navigator.serviceWorker.ready;
@@ -255,9 +268,14 @@
 
 	// Setup push button click handler
 	const setupPushButton = (button, registration, currentSubscription) => {
-		let subscription = currentSubscription;
+		// Prevent multiple event listeners
+		if (button.dataset.listenerAttached) return;
+		button.dataset.listenerAttached = "true";
 
 		button.addEventListener("click", async () => {
+			// Get fresh subscription state on each click
+			let subscription = await getSubscription(registration);
+
 			button.disabled = true;
 			button.innerHTML = `
                 <svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -360,6 +378,15 @@
                 border-radius: 0.5rem;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                background: var(--color-accent, #d4a84b);
+                color: var(--color-primary-dark, #1a2634);
+                border: 2px solid var(--color-accent, #d4a84b);
+            }
+
+            .push-subscribe-btn:hover {
+                background: var(--color-accent-dark, #c49a40);
+                border-color: var(--color-accent-dark, #c49a40);
+                transform: translateY(-2px);
             }
 
             .push-subscribe-btn svg {
@@ -367,13 +394,20 @@
             }
 
             .push-subscribe-btn.push-subscribed {
-                background: var(--color-success, #22c55e);
-                border-color: var(--color-success, #22c55e);
+                background: #22c55e;
+                border-color: #22c55e;
+                color: #fff;
+            }
+
+            .push-subscribe-btn.push-subscribed:hover {
+                background: #16a34a;
+                border-color: #16a34a;
             }
 
             .push-subscribe-btn:disabled {
                 opacity: 0.7;
                 cursor: not-allowed;
+                transform: none;
             }
 
             .push-note {
@@ -384,6 +418,23 @@
                 color: var(--color-text-tertiary, #6b7280);
             }
 
+            /* Dark mode styles */
+            [data-theme="dark"] .push-subscribe-btn {
+                background: var(--color-accent, #d4a84b);
+                color: #1a2634;
+                border-color: var(--color-accent, #d4a84b);
+            }
+
+            [data-theme="dark"] .push-subscribe-btn.push-subscribed {
+                background: #22c55e;
+                border-color: #22c55e;
+                color: #fff;
+            }
+
+            [data-theme="dark"] .push-note {
+                color: var(--color-text-secondary, #cbd5e1);
+            }
+
             .push-toast {
                 position: fixed;
                 bottom: 2rem;
@@ -391,6 +442,7 @@
                 max-width: 400px;
                 padding: 1rem 1.5rem;
                 background: var(--color-bg-elevated, #fff);
+                color: var(--color-text-primary, #1a2634);
                 border-radius: 0.5rem;
                 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
                 display: flex;
@@ -401,20 +453,26 @@
                 transition: transform 0.3s ease;
             }
 
+            [data-theme="dark"] .push-toast {
+                background: var(--color-bg-elevated, #1e293b);
+                color: var(--color-text-primary, #f1f5f9);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            }
+
             .push-toast--visible {
                 transform: translateX(0);
             }
 
             .push-toast--success {
-                border-left: 4px solid var(--color-success, #22c55e);
+                border-left: 4px solid #22c55e;
             }
 
             .push-toast--error {
-                border-left: 4px solid var(--color-error, #ef4444);
+                border-left: 4px solid #ef4444;
             }
 
             .push-toast--info {
-                border-left: 4px solid var(--color-primary, #3b82f6);
+                border-left: 4px solid #3b82f6;
             }
 
             .push-toast__message {
@@ -429,6 +487,7 @@
                 opacity: 0.5;
                 padding: 0;
                 line-height: 1;
+                color: inherit;
             }
 
             .push-toast__close:hover {

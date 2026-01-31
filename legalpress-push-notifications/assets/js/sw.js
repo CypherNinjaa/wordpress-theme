@@ -27,8 +27,8 @@ self.addEventListener("push", (event) => {
 		title: "New Update",
 		body: "Check out the latest content!",
 		url: "/",
-		icon: "/favicon.ico",
-		badge: "/favicon.ico",
+		icon: null,
+		badge: null,
 	};
 
 	// Try to parse push data
@@ -42,10 +42,9 @@ self.addEventListener("push", (event) => {
 		}
 	}
 
+	// Build notification options
 	const options = {
 		body: data.body,
-		icon: data.icon,
-		badge: data.badge,
 		vibrate: [100, 50, 100],
 		data: {
 			url: data.url,
@@ -55,17 +54,28 @@ self.addEventListener("push", (event) => {
 			{
 				action: "open",
 				title: "Read Now",
-				icon: data.icon,
 			},
 			{
 				action: "close",
 				title: "Dismiss",
+			},
+			{
+				action: "unsubscribe",
+				title: "Unsubscribe",
 			},
 		],
 		requireInteraction: false,
 		tag: "legalpress-notification-" + Date.now(),
 		renotify: true,
 	};
+
+	// Only add icon/badge if they're valid URLs
+	if (data.icon && data.icon.startsWith("http")) {
+		options.icon = data.icon;
+	}
+	if (data.badge && data.badge.startsWith("http")) {
+		options.badge = data.badge;
+	}
 
 	event.waitUntil(self.registration.showNotification(data.title, options));
 });
@@ -77,6 +87,20 @@ self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 
 	if (event.action === "close") {
+		return;
+	}
+
+	// Handle unsubscribe action
+	if (event.action === "unsubscribe") {
+		event.waitUntil(
+			self.registration.pushManager.getSubscription().then((subscription) => {
+				if (subscription) {
+					return subscription.unsubscribe().then(() => {
+						console.log("[LegalPress SW] Unsubscribed via notification");
+					});
+				}
+			}),
+		);
 		return;
 	}
 

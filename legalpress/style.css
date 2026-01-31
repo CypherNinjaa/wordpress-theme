@@ -66,8 +66,8 @@ Tags: news, legal, journal, editorial, blog, custom-menu, featured-images
 
 	/* Font Families */
 	--font-heading: "Merriweather", Georgia, "Times New Roman", serif;
-	--font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-		sans-serif;
+	--font-body:
+		"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	--font-mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
 
 	/* Font Sizes (Fluid) */
@@ -142,18 +142,18 @@ Tags: news, legal, journal, editorial, blog, custom-menu, featured-images
 	/* ===== SHADOWS - Light Theme ===== */
 	--shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
 	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-		0 2px 4px -1px rgba(0, 0, 0, 0.06);
-	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-		0 4px 6px -2px rgba(0, 0, 0, 0.05);
-	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-		0 10px 10px -5px rgba(0, 0, 0, 0.04);
+	--shadow-md:
+		0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--shadow-lg:
+		0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	--shadow-xl:
+		0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 	--shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 	--shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 	--shadow-glow: 0 0 20px rgba(212, 168, 75, 0.3);
 	--shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-	--shadow-card-hover: 0 12px 24px rgba(0, 0, 0, 0.12),
-		0 4px 8px rgba(0, 0, 0, 0.06);
+	--shadow-card-hover:
+		0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
 
 	/* ===== TRANSITIONS ===== */
 	--duration-fast: 150ms;
@@ -208,15 +208,15 @@ Tags: news, legal, journal, editorial, blog, custom-menu, featured-images
 	/* Shadows - Dark Theme */
 	--shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
 	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
-		0 2px 4px -1px rgba(0, 0, 0, 0.3);
-	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
-		0 4px 6px -2px rgba(0, 0, 0, 0.3);
-	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
-		0 10px 10px -5px rgba(0, 0, 0, 0.3);
+	--shadow-md:
+		0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+	--shadow-lg:
+		0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+	--shadow-xl:
+		0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 	--shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-	--shadow-card-hover: 0 12px 24px rgba(0, 0, 0, 0.4),
-		0 4px 8px rgba(0, 0, 0, 0.3);
+	--shadow-card-hover:
+		0 12px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* ==========================================================================
@@ -411,7 +411,8 @@ p:last-child {
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
 	text-underline-offset: 2px;
-	transition: color var(--duration-fast) var(--ease-out),
+	transition:
+		color var(--duration-fast) var(--ease-out),
 		text-decoration-color var(--duration-fast) var(--ease-out);
 }
 
@@ -627,7 +628,8 @@ mark {
 	font-size: var(--text-sm);
 	font-weight: var(--font-semibold);
 	color: var(--color-accent-dark);
-	transition: color var(--duration-fast) var(--ease-out),
+	transition:
+		color var(--duration-fast) var(--ease-out),
 		gap var(--duration-fast) var(--ease-out);
 }
 
@@ -849,7 +851,8 @@ mark {
 	background-color: var(--color-bg-primary);
 	border: 1px solid var(--color-border-primary);
 	border-radius: var(--radius-lg);
-	transition: border-color var(--duration-fast) var(--ease-out),
+	transition:
+		border-color var(--duration-fast) var(--ease-out),
 		box-shadow var(--duration-fast) var(--ease-out);
 }
 
@@ -1158,6 +1161,24 @@ span.tag:hover,
 	border: 1px solid var(--color-border-primary);
 	backdrop-filter: blur(10px);
 	overflow: hidden;
+}
+
+/* Dark mode newsletter box */
+[data-theme="dark"] .newsletter-box {
+	background: linear-gradient(
+		135deg,
+		rgba(30, 41, 59, 0.9) 0%,
+		rgba(15, 23, 42, 0.8) 100%
+	);
+	border-color: var(--color-border-secondary);
+}
+
+[data-theme="dark"] .newsletter-box__title {
+	color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .newsletter-box__text {
+	color: var(--color-text-secondary);
 }
 
 @media (min-width: 768px) {

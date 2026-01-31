@@ -99,6 +99,9 @@
 	right: 0;
 	bottom: 0;
 	z-index: 1;
+	/* Ensure touch events work on mobile */
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
 }
 
 /* Ensure category and other interactive elements are above the overlay */
