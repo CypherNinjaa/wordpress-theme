@@ -1048,3 +1048,102 @@ function legalpress_cleanup_head()
     remove_action('wp_head', 'wp_shortlink_wp_head');
 }
 add_action('init', 'legalpress_cleanup_head');
+
+/**
+ * ==========================================================================
+ * AJAX LIVE SEARCH
+ * ==========================================================================
+ */
+
+/**
+ * Enqueue search script data
+ */
+function legalpress_search_scripts()
+{
+    wp_localize_script('legalpress-main', 'legalpressSearch', array(
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('legalpress_search_nonce'),
+        'maxLength' => 100,
+        'minChars' => 3,
+    ));
+}
+add_action('wp_enqueue_scripts', 'legalpress_search_scripts', 20);
+
+/**
+ * AJAX handler for live search suggestions
+ */
+function legalpress_ajax_search()
+{
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'legalpress_search_nonce')) {
+        wp_send_json_error('Invalid security token');
+        return;
+    }
+
+    // Get and sanitize search query
+    $search_query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
+    
+    // Enforce max length (100 characters)
+    $search_query = substr($search_query, 0, 100);
+    
+    // Minimum 3 characters required
+    if (strlen($search_query) < 3) {
+        wp_send_json_error('Query too short');
+        return;
+    }
+
+    // Rate limiting using transient (5 searches per 10 seconds per IP)
+    $ip = sanitize_text_field($_SERVER['REMOTE_ADDR']);
+    $rate_key = 'lp_search_rate_' . md5($ip);
+    $rate_count = get_transient($rate_key);
+    
+    if ($rate_count === false) {
+        set_transient($rate_key, 1, 10);
+    } elseif ($rate_count >= 5) {
+        wp_send_json_error('Rate limit exceeded. Please wait.');
+        return;
+    } else {
+        set_transient($rate_key, $rate_count + 1, 10);
+    }
+
+    // Perform search
+    $args = array(
+        's' => $search_query,
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => 6,
+        'orderby' => 'relevance',
+        'no_found_rows' => true, // Performance optimization
+    );
+
+    $query = new WP_Query($args);
+    $results = array();
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            
+            $category = legalpress_get_first_category();
+            
+            $results[] = array(
+                'id' => get_the_ID(),
+                'title' => get_the_title(),
+                'url' => get_permalink(),
+                'excerpt' => wp_trim_words(get_the_excerpt(), 12),
+                'date' => get_the_date('M j, Y'),
+                'category' => $category ? $category->name : '',
+                'category_url' => $category ? get_category_link($category->term_id) : '',
+                'thumbnail' => has_post_thumbnail() ? get_the_post_thumbnail_url(get_the_ID(), 'thumbnail') : '',
+            );
+        }
+        wp_reset_postdata();
+    }
+
+    wp_send_json_success(array(
+        'results' => $results,
+        'total' => $query->found_posts,
+        'query' => $search_query,
+    ));
+}
+add_action('wp_ajax_legalpress_search', 'legalpress_ajax_search');
+add_action('wp_ajax_nopriv_legalpress_search', 'legalpress_ajax_search');

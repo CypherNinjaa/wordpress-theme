@@ -208,7 +208,7 @@
 	};
 
 	// ==========================================================================
-	// SEARCH OVERLAY
+	// SEARCH OVERLAY WITH LIVE SUGGESTIONS
 	// ==========================================================================
 
 	const searchOverlay = {
@@ -218,8 +218,20 @@
 			this.closeBtn = document.querySelector(".search-overlay__close");
 			this.backdrop = document.querySelector(".search-overlay__backdrop");
 			this.searchInput = document.querySelector(".search-overlay__input");
+			this.form = document.querySelector(".search-overlay__form");
+			this.resultsContainer = null;
+			this.debounceTimer = null;
+			this.isLoading = false;
 
 			if (!this.overlay) return;
+
+			// Create results container
+			this.createResultsContainer();
+
+			// Set max length on input
+			if (this.searchInput && typeof legalpressSearch !== "undefined") {
+				this.searchInput.maxLength = legalpressSearch.maxLength || 100;
+			}
 
 			if (this.toggle) {
 				this.toggle.addEventListener("click", () => this.open());
@@ -233,6 +245,13 @@
 				this.backdrop.addEventListener("click", () => this.close());
 			}
 
+			// Live search on input
+			if (this.searchInput) {
+				this.searchInput.addEventListener("input", (e) => {
+					this.handleInput(e.target.value);
+				});
+			}
+
 			// Close on escape key
 			document.addEventListener("keydown", (e) => {
 				if (
@@ -242,6 +261,131 @@
 					this.close();
 				}
 			});
+		},
+
+		createResultsContainer() {
+			const content = this.overlay?.querySelector(".search-overlay__content");
+			if (!content) return;
+
+			this.resultsContainer = document.createElement("div");
+			this.resultsContainer.className = "search-results";
+			this.resultsContainer.innerHTML = "";
+			content.appendChild(this.resultsContainer);
+		},
+
+		handleInput(query) {
+			// Clear previous timer
+			clearTimeout(this.debounceTimer);
+
+			// Clear results if query too short
+			const minChars =
+				(typeof legalpressSearch !== "undefined" ?
+					legalpressSearch.minChars
+				:	3) || 3;
+
+			if (query.length < minChars) {
+				this.resultsContainer.innerHTML = "";
+				return;
+			}
+
+			// Debounce: wait 300ms after user stops typing
+			this.debounceTimer = setTimeout(() => {
+				this.performSearch(query);
+			}, 300);
+		},
+
+		async performSearch(query) {
+			if (this.isLoading || typeof legalpressSearch === "undefined") return;
+
+			this.isLoading = true;
+			this.showLoading();
+
+			const formData = new FormData();
+			formData.append("action", "legalpress_search");
+			formData.append("nonce", legalpressSearch.nonce);
+			formData.append("query", query);
+
+			try {
+				const response = await fetch(legalpressSearch.ajaxUrl, {
+					method: "POST",
+					body: formData,
+				});
+
+				const data = await response.json();
+
+				if (data.success && data.data.results) {
+					this.displayResults(data.data.results, data.data.total, query);
+				} else {
+					this.resultsContainer.innerHTML = "";
+				}
+			} catch (error) {
+				console.error("[Search] Error:", error);
+				this.resultsContainer.innerHTML =
+					'<p class="search-results__error">Search failed. Please try again.</p>';
+			}
+
+			this.isLoading = false;
+		},
+
+		showLoading() {
+			this.resultsContainer.innerHTML = `
+				<div class="search-results__loading">
+					<svg class="spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="12" cy="12" r="10" opacity="0.3"/>
+						<path d="M12 2a10 10 0 0 1 10 10"/>
+					</svg>
+					<span>Searching...</span>
+				</div>
+			`;
+		},
+
+		displayResults(results, total, query) {
+			if (results.length === 0) {
+				this.resultsContainer.innerHTML = `
+					<div class="search-results__empty">
+						<p>No results found for "<strong>${this.escapeHtml(query)}</strong>"</p>
+						<p class="search-results__tip">Try different keywords or check your spelling</p>
+					</div>
+				`;
+				return;
+			}
+
+			let html = `<div class="search-results__header">
+				<span>${total} result${total !== 1 ? "s" : ""} found</span>
+			</div>
+			<ul class="search-results__list">`;
+
+			results.forEach((result) => {
+				html += `
+					<li class="search-results__item">
+						<a href="${result.url}" class="search-results__link">
+							${result.thumbnail ? `<img src="${result.thumbnail}" alt="" class="search-results__thumb" loading="lazy"/>` : ""}
+							<div class="search-results__info">
+								${result.category ? `<span class="search-results__category">${this.escapeHtml(result.category)}</span>` : ""}
+								<h4 class="search-results__title">${this.escapeHtml(result.title)}</h4>
+								<p class="search-results__excerpt">${this.escapeHtml(result.excerpt)}</p>
+								<span class="search-results__date">${result.date}</span>
+							</div>
+						</a>
+					</li>
+				`;
+			});
+
+			html += `</ul>`;
+
+			if (total > results.length) {
+				html += `<div class="search-results__footer">
+					<button type="submit" class="search-results__view-all">View all ${total} results</button>
+				</div>`;
+			}
+
+			this.resultsContainer.innerHTML = html;
+		},
+
+		escapeHtml(text) {
+			const div = document.createElement("div");
+			div.textContent = text;
+			return div.innerHTML;
 		},
 
 		open() {
@@ -258,6 +402,14 @@
 			this.overlay.classList.remove("is-active");
 			this.overlay.setAttribute("aria-hidden", "true");
 			document.body.style.overflow = "";
+
+			// Clear search on close
+			if (this.searchInput) {
+				this.searchInput.value = "";
+			}
+			if (this.resultsContainer) {
+				this.resultsContainer.innerHTML = "";
+			}
 		},
 	};
 
