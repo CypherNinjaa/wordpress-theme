@@ -215,10 +215,9 @@
 		init() {
 			this.overlay = document.querySelector(".search-overlay");
 			this.toggle = document.querySelector(".search-toggle");
-			this.closeBtn = document.querySelector(".search-overlay-close");
-			this.searchInput = document.querySelector(
-				".search-overlay .search-field",
-			);
+			this.closeBtn = document.querySelector(".search-overlay__close");
+			this.backdrop = document.querySelector(".search-overlay__backdrop");
+			this.searchInput = document.querySelector(".search-overlay__input");
 
 			if (!this.overlay) return;
 
@@ -230,23 +229,24 @@
 				this.closeBtn.addEventListener("click", () => this.close());
 			}
 
-			// Close on escape
-			document.addEventListener("keydown", (e) => {
-				if (e.key === "Escape" && this.overlay.classList.contains("is-open")) {
-					this.close();
-				}
-			});
+			if (this.backdrop) {
+				this.backdrop.addEventListener("click", () => this.close());
+			}
 
-			// Close on overlay click
-			this.overlay.addEventListener("click", (e) => {
-				if (e.target === this.overlay) {
+			// Close on escape key
+			document.addEventListener("keydown", (e) => {
+				if (
+					e.key === "Escape" &&
+					this.overlay.classList.contains("is-active")
+				) {
 					this.close();
 				}
 			});
 		},
 
 		open() {
-			this.overlay.classList.add("is-open");
+			this.overlay.classList.add("is-active");
+			this.overlay.setAttribute("aria-hidden", "false");
 			document.body.style.overflow = "hidden";
 
 			if (this.searchInput) {
@@ -255,7 +255,8 @@
 		},
 
 		close() {
-			this.overlay.classList.remove("is-open");
+			this.overlay.classList.remove("is-active");
+			this.overlay.setAttribute("aria-hidden", "true");
 			document.body.style.overflow = "";
 		},
 	};

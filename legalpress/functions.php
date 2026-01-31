@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
  * Define theme constants with existence check - SECURITY
  */
 if (!defined('LEGALPRESS_VERSION')) {
-    define('LEGALPRESS_VERSION', '2.4.0');
+    define('LEGALPRESS_VERSION', '2.5.0');
 }
 if (!defined('LEGALPRESS_DIR')) {
     define('LEGALPRESS_DIR', get_template_directory());
@@ -652,6 +652,38 @@ function legalpress_comment_callback($comment, $args, $depth)
  */
 function legalpress_customize_register($wp_customize)
 {
+    // ========================================
+    // HEADER SETTINGS SECTION
+    // ========================================
+    $wp_customize->add_section('legalpress_header', array(
+        'title' => esc_html__('Header Settings', 'legalpress'),
+        'priority' => 105,
+    ));
+
+    // Show/Hide Dark Mode Toggle
+    $wp_customize->add_setting('legalpress_show_theme_toggle', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean',
+    ));
+    $wp_customize->add_control('legalpress_show_theme_toggle', array(
+        'label' => esc_html__('Show Dark/Light Mode Toggle', 'legalpress'),
+        'description' => esc_html__('Display the theme toggle button in the header', 'legalpress'),
+        'section' => 'legalpress_header',
+        'type' => 'checkbox',
+    ));
+
+    // Show/Hide Search Button
+    $wp_customize->add_setting('legalpress_show_search', array(
+        'default' => true,
+        'sanitize_callback' => 'wp_validate_boolean',
+    ));
+    $wp_customize->add_control('legalpress_show_search', array(
+        'label' => esc_html__('Show Search Button', 'legalpress'),
+        'description' => esc_html__('Display the search button in the header', 'legalpress'),
+        'section' => 'legalpress_header',
+        'type' => 'checkbox',
+    ));
+
     // ========================================
     // SOCIAL LINKS SECTION
     // ========================================

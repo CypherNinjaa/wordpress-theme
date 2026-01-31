@@ -91,7 +91,18 @@
 
                 <!-- Header Actions -->
                 <div class="header-actions">
+                    <!-- Search Toggle -->
+                    <?php if (get_theme_mod('legalpress_show_search', true)): ?>
+                    <button class="search-toggle" aria-label="<?php esc_attr_e('Open search', 'legalpress'); ?>" aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                    </button>
+                    <?php endif; ?>
+
                     <!-- Theme Toggle -->
+                    <?php if (get_theme_mod('legalpress_show_theme_toggle', true)): ?>
                     <button class="theme-toggle" aria-label="<?php esc_attr_e('Toggle dark mode', 'legalpress'); ?>">
                         <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -112,6 +123,7 @@
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                         </svg>
                     </button>
+                    <?php endif; ?>
 
                     <!-- Mobile Menu Toggle Button -->
                     <button class="mobile-menu-toggle" aria-controls="mobile-navigation" aria-expanded="false"
@@ -127,6 +139,45 @@
             </div>
         </div>
     </header>
+
+    <!-- Search Overlay -->
+    <?php if (get_theme_mod('legalpress_show_search', true)): ?>
+    <div class="search-overlay" id="search-overlay" aria-hidden="true">
+        <div class="search-overlay__backdrop"></div>
+        <div class="search-overlay__container">
+            <button class="search-overlay__close" aria-label="<?php esc_attr_e('Close search', 'legalpress'); ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="search-overlay__content">
+                <h2 class="search-overlay__title"><?php esc_html_e('Search', 'legalpress'); ?></h2>
+                <form role="search" method="get" class="search-overlay__form" action="<?php echo esc_url(home_url('/')); ?>">
+                    <div class="search-overlay__input-wrapper">
+                        <svg class="search-overlay__icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="search" 
+                            class="search-overlay__input" 
+                            placeholder="<?php esc_attr_e('Type to search...', 'legalpress'); ?>" 
+                            value="<?php echo get_search_query(); ?>" 
+                            name="s" 
+                            autocomplete="off"
+                            autofocus />
+                        <button type="submit" class="search-overlay__submit">
+                            <?php esc_html_e('Search', 'legalpress'); ?>
+                        </button>
+                    </div>
+                    <p class="search-overlay__hint">
+                        <?php esc_html_e('Press Enter to search or ESC to close', 'legalpress'); ?>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Mobile Navigation -->
     <nav class="mobile-navigation" id="mobile-navigation" role="navigation"
