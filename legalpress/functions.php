@@ -300,6 +300,26 @@ function legalpress_get_category_posts($category_slug, $count = 4)
 }
 
 /**
+ * Get Random Featured Post for Hero Section
+ * Returns a random published post each time page loads
+ *
+ * @return WP_Query
+ */
+function legalpress_get_random_featured_post()
+{
+    $args = array(
+        'posts_per_page' => 1,
+        'post_status' => 'publish',
+        'orderby' => 'rand',
+        'no_found_rows' => true,
+        'update_post_meta_cache' => false,
+        'ignore_sticky_posts' => 1,
+    );
+
+    return new WP_Query($args);
+}
+
+/**
  * Get Featured Posts - PERFORMANCE: Optimized
  *
  * @param int $count Number of posts.

@@ -20,8 +20,11 @@ $cat_slug = $category ? sanitize_html_class($category->slug) : 'default';
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class('post-card reveal ' . esc_attr($card_class)); ?>
-    data-animate="fade-in-up"
+    data-animate="fade-in-up" data-href="<?php the_permalink(); ?>"
     style="<?php echo $animation_delay ? 'animation-delay: ' . esc_attr($animation_delay) . 'ms;' : ''; ?>">
+
+    <!-- Full card clickable overlay -->
+    <a href="<?php the_permalink(); ?>" class="post-card-link-overlay" aria-label="<?php echo esc_attr(get_the_title()); ?>"></a>
 
     <!-- Card Image -->
     <div class="post-card-image">

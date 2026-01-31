@@ -34,8 +34,8 @@ $displayed_posts = array();
 <!-- Hero Section with Featured Article -->
 <section id="hero-section" class="hero" data-animate="fade-in">
     <?php
-    // Get featured/sticky post for hero
-    $featured_query = legalpress_get_featured_posts(1);
+    // Get random post for hero section
+    $featured_query = legalpress_get_random_featured_post();
 
     if ($featured_query->have_posts()):
         while ($featured_query->have_posts()):
@@ -180,7 +180,10 @@ $displayed_posts = array();
                     ?>
 
                     <article class="post-card <?php echo $is_featured ? 'post-card-featured' : ''; ?> reveal hover-lift"
-                        data-animate="fade-in-up">
+                        data-animate="fade-in-up" data-href="<?php the_permalink(); ?>">
+                        <!-- Full card clickable overlay -->
+                        <a href="<?php the_permalink(); ?>" class="post-card-link-overlay" aria-label="<?php echo esc_attr(get_the_title()); ?>"></a>
+                        
                         <div class="post-card-image hover-zoom">
                             <?php if (has_post_thumbnail()): ?>
                                 <?php the_post_thumbnail('legalpress-card', array(
@@ -309,7 +312,10 @@ foreach ($category_sections as $index => $cat_section):
                     $cat_query->the_post();
                     $displayed_posts[] = get_the_ID();
                     ?>
-                    <article class="post-card reveal hover-lift" data-animate="fade-in-up">
+                    <article class="post-card reveal hover-lift" data-animate="fade-in-up" data-href="<?php the_permalink(); ?>">
+                        <!-- Full card clickable overlay -->
+                        <a href="<?php the_permalink(); ?>" class="post-card-link-overlay" aria-label="<?php echo esc_attr(get_the_title()); ?>"></a>
+                        
                         <div class="post-card-image hover-zoom">
                             <?php if (has_post_thumbnail()): ?>
                                 <?php the_post_thumbnail('legalpress-card', array(

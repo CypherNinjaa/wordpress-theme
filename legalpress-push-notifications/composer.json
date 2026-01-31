@@ -1,0 +1,16 @@
+{
+	"name": "legalpress/push-notifications",
+	"description": "Web Push Notifications for WordPress",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.4",
+		"minishlink/web-push": "^8.0"
+	},
+	"autoload": {
+		"psr-4": {}
+	},
+	"config": {
+		"optimize-autoloader": true
+	}
+}
