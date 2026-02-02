@@ -71,20 +71,36 @@ get_header();
             </figure>
         <?php endif; ?>
 
-        <!-- Post Content -->
-        <div class="single-content">
-            <div class="container container-narrow">
-                <?php
-                the_content();
+        <!-- Post Content with Sidebar -->
+        <?php 
+        $show_sidebar = get_theme_mod('legalpress_single_sidebar_enable', true);
+        $has_sidebar = $show_sidebar && (get_theme_mod('legalpress_sidebar_show_related', true) || get_theme_mod('legalpress_sidebar_show_trending', true));
+        ?>
+        <div class="single-content-wrapper <?php echo $has_sidebar ? 'has-sidebar' : ''; ?>">
+            <div class="container">
+                <div class="single-content-inner">
+                    <!-- Main Content -->
+                    <div class="single-content">
+                        <?php
+                        the_content();
 
-                // Pagination for multi-page posts
-                wp_link_pages(array(
-                    'before' => '<nav class="page-links" role="navigation"><span class="page-links-label">' . esc_html__('Pages:', 'legalpress') . '</span>',
-                    'after' => '</nav>',
-                    'link_before' => '<span class="page-links-number">',
-                    'link_after' => '</span>',
-                ));
-                ?>
+                        // Pagination for multi-page posts
+                        wp_link_pages(array(
+                            'before' => '<nav class="page-links" role="navigation"><span class="page-links-label">' . esc_html__('Pages:', 'legalpress') . '</span>',
+                            'after' => '</nav>',
+                            'link_before' => '<span class="page-links-number">',
+                            'link_after' => '</span>',
+                        ));
+                        ?>
+                    </div>
+                    
+                    <!-- Sidebar -->
+                    <?php if ($has_sidebar) : ?>
+                        <aside class="single-sidebar-wrapper">
+                            <?php get_template_part('template-parts/sidebar-single'); ?>
+                        </aside>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -226,6 +242,11 @@ get_header();
             </footer>
         <?php endif; ?>
 
+        <!-- Author Bio Box -->
+        <div class="container container-narrow">
+            <?php get_template_part('template-parts/author-bio'); ?>
+        </div>
+
         <!-- Post Navigation (Previous/Next) -->
         <?php
         $prev_post = get_previous_post();
@@ -272,39 +293,47 @@ get_header();
 
         <!-- Related Posts -->
         <?php
-        $related_query = new WP_Query(array(
-            'category__in' => wp_get_post_categories(get_the_ID()),
-            'post__not_in' => array(get_the_ID()),
-            'posts_per_page' => 3,
-            'no_found_rows' => true,
-        ));
+        $show_similar = get_theme_mod('legalpress_similar_posts_enable', true);
+        
+        // Only show this built-in related section if similar posts are disabled
+        if (!$show_similar) :
+            $related_query = new WP_Query(array(
+                'category__in' => wp_get_post_categories(get_the_ID()),
+                'post__not_in' => array(get_the_ID()),
+                'posts_per_page' => 3,
+                'no_found_rows' => true,
+            ));
 
-        if ($related_query->have_posts()):
-            ?>
-            <section class="related-posts">
-                <div class="container">
-                    <h2 class="section-title">
-                        <svg class="section-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                        </svg>
-                        <?php esc_html_e('Related Articles', 'legalpress'); ?>
-                    </h2>
+            if ($related_query->have_posts()):
+                ?>
+                <section class="related-posts">
+                    <div class="container">
+                        <h2 class="section-title">
+                            <svg class="section-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                            </svg>
+                            <?php esc_html_e('Related Articles', 'legalpress'); ?>
+                        </h2>
 
-                    <div class="posts-grid posts-grid-3">
-                        <?php
-                        while ($related_query->have_posts()):
-                            $related_query->the_post();
-                            get_template_part('template-parts/card', 'post');
-                        endwhile;
-                        ?>
+                        <div class="posts-grid posts-grid-3">
+                            <?php
+                            while ($related_query->have_posts()):
+                                $related_query->the_post();
+                                get_template_part('template-parts/card', 'post');
+                            endwhile;
+                            ?>
+                        </div>
                     </div>
-                </div>
-            </section>
-            <?php
-            wp_reset_postdata();
+                </section>
+                <?php
+                wp_reset_postdata();
+            endif;
         endif;
         ?>
+
+        <!-- Similar Posts Section -->
+        <?php get_template_part('template-parts/similar-posts'); ?>
 
         <!-- Comments Section -->
         <?php

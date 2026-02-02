@@ -128,8 +128,14 @@ function legalpress_scripts()
     // Responsive styles (load last)
     wp_enqueue_style('legalpress-responsive', LEGALPRESS_URI . '/assets/css/responsive.css', array('legalpress-skeleton'), LEGALPRESS_VERSION);
 
+    // LawChakra Components (Top Bar, Ticker, Breadcrumb, Author Bio, Similar Posts)
+    wp_enqueue_style('legalpress-lawchakra', LEGALPRESS_URI . '/assets/css/lawchakra-components.css', array('legalpress-responsive'), LEGALPRESS_VERSION);
+
     // Main JavaScript
     wp_enqueue_script('legalpress-main', LEGALPRESS_URI . '/assets/js/main.js', array(), LEGALPRESS_VERSION, true);
+
+    // LawChakra Components JavaScript (Live Time, Ticker Controls)
+    wp_enqueue_script('legalpress-lawchakra', LEGALPRESS_URI . '/assets/js/lawchakra-components.js', array('legalpress-main'), LEGALPRESS_VERSION, true);
 
     wp_localize_script('legalpress-main', 'legalpressData', array(
         'ajaxUrl' => esc_url(admin_url('admin-ajax.php')),
@@ -150,6 +156,11 @@ add_action('wp_enqueue_scripts', 'legalpress_scripts');
 require_once LEGALPRESS_DIR . '/inc/demo-content.php';
 
 /**
+ * Include Customizer Settings for LawChakra Features
+ */
+require_once LEGALPRESS_DIR . '/inc/customizer.php';
+
+/**
  * Register Widget Areas
  *
  * @since 1.0.0
@@ -164,6 +175,16 @@ function legalpress_widgets_init()
         'before_widget' => '<section id="%1$s" class="widget %2$s">',
         'after_widget' => '</section>',
         'before_title' => '<h3 class="widget__title">',
+        'after_title' => '</h3>',
+    ));
+
+    register_sidebar(array(
+        'name' => esc_html__('Single Post Sidebar', 'legalpress'),
+        'id' => 'single-sidebar',
+        'description' => esc_html__('Sidebar for single post pages with Related & Trending posts.', 'legalpress'),
+        'before_widget' => '<div id="%1$s" class="sidebar-widget %2$s">',
+        'after_widget' => '</div>',
+        'before_title' => '<h3 class="sidebar-widget__title">',
         'after_title' => '</h3>',
     ));
 
@@ -748,67 +769,18 @@ function legalpress_customize_register($wp_customize)
     ));
 
     // ========================================
-    // HOMEPAGE SETTINGS SECTION
+    // NEWSLETTER SETTINGS (Moved to Homepage Content in inc/customizer.php)
+    // Note: Category sections are now configured in Homepage Content
     // ========================================
-    $wp_customize->add_section('legalpress_homepage', array(
-        'title' => esc_html__('Homepage Settings', 'legalpress'),
-        'priority' => 115,
-    ));
-
-    // Get all categories for dropdown
-    $categories = get_categories(array('hide_empty' => false));
-    $cat_choices = array('' => esc_html__('-- Select Category --', 'legalpress'));
-    foreach ($categories as $cat) {
-        $cat_choices[$cat->slug] = $cat->name;
-    }
-
-    // Category Section 1
-    $wp_customize->add_setting('legalpress_cat_section_1', array(
-        'default' => '',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    $wp_customize->add_control('legalpress_cat_section_1', array(
-        'label' => esc_html__('Category Section 1', 'legalpress'),
-        'description' => esc_html__('Select first featured category for homepage', 'legalpress'),
-        'section' => 'legalpress_homepage',
-        'type' => 'select',
-        'choices' => $cat_choices,
-    ));
-
-    // Category Section 2
-    $wp_customize->add_setting('legalpress_cat_section_2', array(
-        'default' => '',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    $wp_customize->add_control('legalpress_cat_section_2', array(
-        'label' => esc_html__('Category Section 2', 'legalpress'),
-        'description' => esc_html__('Select second featured category for homepage', 'legalpress'),
-        'section' => 'legalpress_homepage',
-        'type' => 'select',
-        'choices' => $cat_choices,
-    ));
-
-    // Category Section 3
-    $wp_customize->add_setting('legalpress_cat_section_3', array(
-        'default' => '',
-        'sanitize_callback' => 'sanitize_text_field',
-    ));
-    $wp_customize->add_control('legalpress_cat_section_3', array(
-        'label' => esc_html__('Category Section 3', 'legalpress'),
-        'description' => esc_html__('Select third featured category for homepage', 'legalpress'),
-        'section' => 'legalpress_homepage',
-        'type' => 'select',
-        'choices' => $cat_choices,
-    ));
-
-    // Newsletter Section Title
+    
+    // Newsletter settings added to homepage content section
     $wp_customize->add_setting('legalpress_newsletter_title', array(
         'default' => 'Stay Updated',
         'sanitize_callback' => 'sanitize_text_field',
     ));
     $wp_customize->add_control('legalpress_newsletter_title', array(
         'label' => esc_html__('Newsletter Title', 'legalpress'),
-        'section' => 'legalpress_homepage',
+        'section' => 'legalpress_homepage_section',
         'type' => 'text',
     ));
 
@@ -819,7 +791,7 @@ function legalpress_customize_register($wp_customize)
     ));
     $wp_customize->add_control('legalpress_newsletter_text', array(
         'label' => esc_html__('Newsletter Description', 'legalpress'),
-        'section' => 'legalpress_homepage',
+        'section' => 'legalpress_homepage_section',
         'type' => 'textarea',
     ));
 
@@ -831,7 +803,7 @@ function legalpress_customize_register($wp_customize)
     $wp_customize->add_control('legalpress_newsletter_action', array(
         'label' => esc_html__('Newsletter Form URL', 'legalpress'),
         'description' => esc_html__('Enter your email service form action URL (MailChimp, ConvertKit, etc.)', 'legalpress'),
-        'section' => 'legalpress_homepage',
+        'section' => 'legalpress_homepage_section',
         'type' => 'url',
     ));
 
@@ -842,7 +814,7 @@ function legalpress_customize_register($wp_customize)
     ));
     $wp_customize->add_control('legalpress_show_newsletter', array(
         'label' => esc_html__('Show Newsletter Section', 'legalpress'),
-        'section' => 'legalpress_homepage',
+        'section' => 'legalpress_homepage_section',
         'type' => 'checkbox',
     ));
 
@@ -937,47 +909,76 @@ function legalpress_get_social_links()
 function legalpress_get_homepage_categories()
 {
     $sections = array();
-    $colors = array('#4f46e5', '#059669', '#dc2626'); // Default colors
-    $icons = array(
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
+    
+    // Default icons for each section
+    $default_icons = array(
+        1 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>', // Supreme Court - Building
+        2 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/></svg>', // High Court - Compass
+        3 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', // Other Courts - Shield
+        4 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>', // Legal Updates - Document
+        5 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>', // Opinion - Chat
+        6 => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', // Monthly Recap - Calendar
     );
 
-    for ($i = 1; $i <= 3; $i++) {
-        $cat_slug = get_theme_mod('legalpress_cat_section_' . $i);
-        if (!empty($cat_slug)) {
-            $category = get_category_by_slug($cat_slug);
-            if ($category) {
-                $sections[] = array(
-                    'slug' => $cat_slug,
-                    'title' => $category->name,
-                    'icon' => $icons[$i - 1],
-                    'color' => $colors[$i - 1],
-                    'category' => $category,
-                );
-            }
-        }
+    // Default colors for each section
+    $default_colors = array(
+        1 => '#1e3a5f', // Navy Blue - Supreme Court
+        2 => '#059669', // Green - High Court
+        3 => '#7c3aed', // Purple - Other Courts
+        4 => '#dc2626', // Red - Legal Updates
+        5 => '#d97706', // Orange - Opinion
+        6 => '#0891b2', // Cyan - Monthly Recap
+    );
+
+    // Get top categories for defaults (excluding 'uncategorized')
+    $top_cats = get_categories(array(
+        'orderby' => 'count',
+        'order' => 'DESC',
+        'number' => 6,
+        'hide_empty' => false,
+        'exclude' => array(get_cat_ID('uncategorized')),
+    ));
+    
+    $default_category_slugs = array();
+    foreach ($top_cats as $cat) {
+        $default_category_slugs[] = $cat->slug;
     }
 
-    // Fallback to auto-select top categories if none selected
-    if (empty($sections)) {
-        $top_cats = get_categories(array(
-            'orderby' => 'count',
-            'order' => 'DESC',
-            'number' => 3,
-            'hide_empty' => true,
-        ));
-
-        foreach ($top_cats as $index => $cat) {
-            $sections[] = array(
-                'slug' => $cat->slug,
-                'title' => $cat->name,
-                'icon' => $icons[$index] ?? $icons[0],
-                'color' => $colors[$index] ?? $colors[0],
-                'category' => $cat,
-            );
+    // Loop through 6 possible sections
+    for ($i = 1; $i <= 6; $i++) {
+        $enabled = get_theme_mod("legalpress_section_{$i}_enable", ($i <= 4));
+        
+        if (!$enabled) {
+            continue;
         }
+
+        // Get default category slug for this section
+        $default_cat_slug = isset($default_category_slugs[$i - 1]) ? $default_category_slugs[$i - 1] : '';
+        
+        $cat_slug = get_theme_mod("legalpress_section_{$i}_category", $default_cat_slug);
+        $custom_title = get_theme_mod("legalpress_section_{$i}_title", '');
+        $post_count = get_theme_mod("legalpress_section_{$i}_count", 6);
+        $color = get_theme_mod("legalpress_section_{$i}_color", $default_colors[$i] ?? '#1e3a5f');
+        $icon = get_theme_mod("legalpress_section_{$i}_icon", '');
+
+        // Try to get category by slug
+        $category = null;
+        if (!empty($cat_slug)) {
+            $category = get_category_by_slug($cat_slug);
+        }
+
+        // Use custom title or category name, or fallback to Section number
+        $title = !empty($custom_title) ? $custom_title : ($category ? $category->name : sprintf(__('Section %d', 'legalpress'), $i));
+
+        $sections[] = array(
+            'index' => $i,
+            'slug' => $cat_slug,
+            'title' => $title,
+            'icon' => !empty($icon) ? $icon : ($default_icons[$i] ?? $default_icons[1]),
+            'color' => $color,
+            'category' => $category,
+            'count' => $post_count,
+        );
     }
 
     return $sections;
@@ -1147,3 +1148,161 @@ function legalpress_ajax_search()
 }
 add_action('wp_ajax_legalpress_search', 'legalpress_ajax_search');
 add_action('wp_ajax_nopriv_legalpress_search', 'legalpress_ajax_search');
+
+/**
+ * Add Social Media Fields to User Profile
+ * 
+ * @since 2.5.0
+ * @param array $contactmethods Contact methods array.
+ * @return array Modified contact methods.
+ */
+function legalpress_user_social_fields($contactmethods) {
+    $contactmethods['twitter'] = esc_html__('Twitter/X URL', 'legalpress');
+    $contactmethods['facebook'] = esc_html__('Facebook URL', 'legalpress');
+    $contactmethods['linkedin'] = esc_html__('LinkedIn URL', 'legalpress');
+    $contactmethods['instagram'] = esc_html__('Instagram URL', 'legalpress');
+    $contactmethods['youtube'] = esc_html__('YouTube URL', 'legalpress');
+    return $contactmethods;
+}
+add_filter('user_contactmethods', 'legalpress_user_social_fields');
+
+/**
+ * Get Author Social Links
+ *
+ * @since 2.5.0
+ * @param int $user_id User ID.
+ * @return array Social links array.
+ */
+function legalpress_get_author_social_links($user_id = null) {
+    if (!$user_id) {
+        $user_id = get_the_author_meta('ID');
+    }
+    
+    $social = array();
+    $networks = array('twitter', 'facebook', 'linkedin', 'instagram', 'youtube');
+    
+    foreach ($networks as $network) {
+        $url = get_the_author_meta($network, $user_id);
+        if ($url) {
+            $social[$network] = esc_url($url);
+        }
+    }
+    
+    return $social;
+}
+
+/**
+ * Get Similar Posts by Category
+ *
+ * @since 2.5.0
+ * @param int $post_id Current post ID.
+ * @param int $count Number of posts to get.
+ * @return WP_Query
+ */
+function legalpress_get_similar_posts($post_id = null, $count = 3) {
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+    
+    $categories = wp_get_post_categories($post_id, array('fields' => 'ids'));
+    
+    $args = array(
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => absint($count),
+        'post__not_in' => array($post_id),
+        'no_found_rows' => true,
+        'update_post_meta_cache' => false,
+    );
+    
+    if (!empty($categories)) {
+        $args['category__in'] = $categories;
+    }
+    
+    return new WP_Query($args);
+}
+
+/**
+ * Get Related Posts for Sidebar (by current category)
+ *
+ * @since 2.5.0
+ * @param int $count Number of posts.
+ * @return WP_Query
+ */
+function legalpress_get_related_sidebar_posts($count = 5) {
+    $post_id = get_the_ID();
+    $categories = wp_get_post_categories($post_id, array('fields' => 'ids'));
+    
+    $args = array(
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => absint($count),
+        'post__not_in' => array($post_id),
+        'no_found_rows' => true,
+    );
+    
+    if (!empty($categories)) {
+        $args['category__in'] = $categories;
+    }
+    
+    return new WP_Query($args);
+}
+
+/**
+ * Get Trending Posts (by comment count or views)
+ *
+ * @since 2.5.0
+ * @param int $count Number of posts.
+ * @param int $days Posts from last X days.
+ * @return WP_Query
+ */
+function legalpress_get_trending_posts($count = 5, $days = 30) {
+    $args = array(
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => absint($count),
+        'orderby' => 'comment_count',
+        'order' => 'DESC',
+        'no_found_rows' => true,
+        'date_query' => array(
+            array(
+                'after' => $days . ' days ago',
+            ),
+        ),
+    );
+    
+    $query = new WP_Query($args);
+    
+    // If no posts found in date range, get most commented posts of all time
+    if (!$query->have_posts()) {
+        unset($args['date_query']);
+        $query = new WP_Query($args);
+    }
+    
+    return $query;
+}
+
+/**
+ * Get Breaking News / Latest Posts for Ticker
+ *
+ * @since 2.5.0
+ * @param int $count Number of posts.
+ * @param string $category Optional category slug.
+ * @return WP_Query
+ */
+function legalpress_get_ticker_posts($count = 10, $category = '') {
+    $args = array(
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => absint($count),
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'no_found_rows' => true,
+    );
+    
+    if (!empty($category)) {
+        $args['category_name'] = sanitize_title($category);
+    }
+    
+    return new WP_Query($args);
+}

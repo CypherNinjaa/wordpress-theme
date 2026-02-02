@@ -16,6 +16,7 @@ $displayed_posts = array();
 ?>
 
 <!-- Skeleton Loading for Hero (shown during page load) -->
+<?php if (get_theme_mod('legalpress_hero_enable', true)) : ?>
 <div class="skeleton-hero-wrapper" data-skeleton="#hero-section" style="display: none;">
     <div class="skeleton-hero">
         <div class="skeleton-hero__content">
@@ -34,8 +35,55 @@ $displayed_posts = array();
 <!-- Hero Section with Featured Article -->
 <section id="hero-section" class="hero" data-animate="fade-in">
     <?php
-    // Get random post for hero section
-    $featured_query = legalpress_get_random_featured_post();
+    // Get hero post based on admin settings
+    $hero_source = get_theme_mod('legalpress_hero_source', 'latest');
+    $hero_post_id = get_theme_mod('legalpress_hero_post_id', '');
+    
+    // Build query based on source selection
+    $hero_args = array(
+        'posts_per_page' => 1,
+        'post_status' => 'publish',
+        'no_found_rows' => true,
+        'update_post_meta_cache' => false,
+    );
+    
+    switch ($hero_source) {
+        case 'sticky':
+            // Get sticky posts first
+            $sticky_posts = get_option('sticky_posts');
+            if (!empty($sticky_posts)) {
+                $hero_args['post__in'] = $sticky_posts;
+                $hero_args['ignore_sticky_posts'] = 1;
+            } else {
+                // Fallback to latest if no sticky posts
+                $hero_args['orderby'] = 'date';
+                $hero_args['order'] = 'DESC';
+            }
+            break;
+            
+        case 'specific':
+            // Get specific post selected by admin
+            if (!empty($hero_post_id)) {
+                $hero_args['p'] = absint($hero_post_id);
+            } else {
+                // Fallback to latest if no post selected
+                $hero_args['orderby'] = 'date';
+                $hero_args['order'] = 'DESC';
+            }
+            break;
+            
+        case 'random':
+            $hero_args['orderby'] = 'rand';
+            break;
+            
+        case 'latest':
+        default:
+            $hero_args['orderby'] = 'date';
+            $hero_args['order'] = 'DESC';
+            break;
+    }
+    
+    $featured_query = new WP_Query($hero_args);
 
     if ($featured_query->have_posts()):
         while ($featured_query->have_posts()):
@@ -142,8 +190,16 @@ $displayed_posts = array();
         </div>
     <?php endif; ?>
 </section>
+<?php endif; ?>
 
 <!-- Latest News Section -->
+<?php 
+$latest_news_enabled = get_theme_mod('legalpress_latest_news_enable', true);
+$latest_news_title = get_theme_mod('legalpress_latest_news_title', __('Latest News', 'legalpress'));
+$latest_news_count = get_theme_mod('legalpress_latest_news_count', 6);
+
+if ($latest_news_enabled) : 
+?>
 <section class="section section--latest-news">
     <div class="container">
 
@@ -154,10 +210,10 @@ $displayed_posts = array();
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
                     <polyline points="13 2 13 9 20 9" />
                 </svg>
-                Latest News
+                <?php echo esc_html($latest_news_title); ?>
             </h2>
             <a href="<?php echo esc_url(get_permalink(get_option('page_for_posts'))); ?>" class="section-link">
-                View All Articles
+                <?php esc_html_e('View All Articles', 'legalpress'); ?>
                 <svg class="section-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
@@ -168,7 +224,7 @@ $displayed_posts = array();
         <!-- Posts Grid with Skeleton Loading -->
         <div class="posts-grid stagger-children">
             <?php
-            $latest_query = legalpress_get_latest_posts(6, $displayed_posts);
+            $latest_query = legalpress_get_latest_posts($latest_news_count, $displayed_posts);
 
             if ($latest_query->have_posts()):
                 $post_count = 0;
@@ -260,31 +316,47 @@ $displayed_posts = array();
         </div>
     </div>
 </section>
+<?php endif; ?>
 
-<!-- Category Sections -->
+<!-- Category Sections (Admin Configurable) -->
 <?php
-// Get dynamic category sections from Customizer (or auto-select top categories)
+// Get dynamic category sections from Customizer
 $category_sections = legalpress_get_homepage_categories();
+
+// Reset displayed posts for category sections to allow more flexibility
+// Each section will show its category posts regardless of previous sections
+$section_displayed = array();
 
 foreach ($category_sections as $index => $cat_section):
     $category = $cat_section['category'];
-    if (!$category)
-        continue;
-
-    $cat_query = new WP_Query(array(
-        'category_name' => $cat_section['slug'],
-        'posts_per_page' => 4,
-        'post__not_in' => $displayed_posts,
+    $section_index = $cat_section['index'];
+    $post_count = isset($cat_section['count']) ? $cat_section['count'] : 6;
+    
+    // Build query args
+    $query_args = array(
+        'posts_per_page' => $post_count,
         'no_found_rows' => true,
         'update_post_meta_cache' => false,
-        'update_post_term_cache' => false
-    ));
+        'update_post_term_cache' => false,
+        'post_status' => 'publish',
+    );
+    
+    // If category is set, filter by it (use category ID for more reliable querying)
+    if ($category && isset($category->term_id)) {
+        $query_args['cat'] = $category->term_id;
+    } elseif (!empty($cat_section['slug'])) {
+        // Fallback to slug if category object not available
+        $query_args['category_name'] = $cat_section['slug'];
+    }
 
+    $cat_query = new WP_Query($query_args);
+
+    // Skip section only if no posts found at all
     if (!$cat_query->have_posts())
         continue;
     ?>
 
-    <section class="section section--category section--<?php echo esc_attr($cat_section['slug']); ?>"
+    <section class="section section--category homepage-section-<?php echo esc_attr($section_index); ?> section--<?php echo esc_attr($cat_section['slug'] ?: 'default'); ?>"
         style="--section-color: <?php echo esc_attr($cat_section['color']); ?>">
         <div class="container">
 
@@ -296,23 +368,27 @@ foreach ($category_sections as $index => $cat_section):
                     </span>
                     <?php echo esc_html($cat_section['title']); ?>
                 </h2>
-                <a href="<?php echo esc_url(get_category_link($category->term_id)); ?>" class="section-link">
-                    View All
+                <?php if ($category) : ?>
+                <a href="<?php echo esc_url(get_category_link($category->term_id)); ?>" class="section-link" style="color: <?php echo esc_attr($cat_section['color']); ?>">
+                    <?php esc_html_e('View All', 'legalpress'); ?>
                     <svg class="section-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />
                     </svg>
                 </a>
+                <?php endif; ?>
             </div>
 
             <!-- Category Posts Grid -->
-            <div class="posts-grid posts-grid-4 stagger-children">
+            <div class="posts-grid posts-grid-<?php echo min($post_count, 4); ?> stagger-children">
                 <?php
+                $first_post = true;
                 while ($cat_query->have_posts()):
                     $cat_query->the_post();
                     $displayed_posts[] = get_the_ID();
+                    $is_featured = $first_post && $post_count <= 4;
                     ?>
-                    <article class="post-card reveal hover-lift" data-animate="fade-in-up" data-href="<?php the_permalink(); ?>">
+                    <article class="post-card <?php echo $is_featured ? 'post-card--section-featured' : ''; ?> reveal hover-lift" data-animate="fade-in-up" data-href="<?php the_permalink(); ?>">
                         <!-- Full card clickable overlay -->
                         <a href="<?php the_permalink(); ?>" class="post-card-link-overlay" aria-label="<?php echo esc_attr(get_the_title()); ?>"></a>
                         
@@ -335,6 +411,20 @@ foreach ($category_sections as $index => $cat_section):
                             <?php endif; ?>
 
                             <div class="post-card-image-overlay"></div>
+                            
+                            <?php
+                            // Show category badge if not filtered by category
+                            if (!$category) :
+                                $post_category = legalpress_get_first_category();
+                                if ($post_category):
+                                ?>
+                                <a href="<?php echo esc_url(get_category_link($post_category->term_id)); ?>" 
+                                   class="post-card-category category-<?php echo esc_attr($post_category->slug); ?>">
+                                    <?php echo esc_html($post_category->name); ?>
+                                </a>
+                                <?php endif;
+                            endif;
+                            ?>
 
                             <span class="post-card-read-time">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -350,6 +440,10 @@ foreach ($category_sections as $index => $cat_section):
                             <h3 class="post-card-title">
                                 <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
                             </h3>
+                            
+                            <?php if ($is_featured && has_excerpt()): ?>
+                                <p class="post-card-excerpt"><?php echo esc_html(wp_trim_words(get_the_excerpt(), 20)); ?></p>
+                            <?php endif; ?>
 
                             <div class="post-card-footer">
                                 <div class="post-card-author">
@@ -357,12 +451,21 @@ foreach ($category_sections as $index => $cat_section):
                                     <span><?php the_author(); ?></span>
                                 </div>
                                 <div class="post-card-date">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
                                     <span><?php echo esc_html(get_the_date('M j')); ?></span>
                                 </div>
                             </div>
                         </div>
                     </article>
-                <?php endwhile; ?>
+                    <?php 
+                    $first_post = false;
+                endwhile; 
+                ?>
             </div>
         </div>
     </section>
